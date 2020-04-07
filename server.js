@@ -40,9 +40,9 @@ function locationHandler(Request, Response) {
 }
 
 function getlocation(city) {
-  const key = process.env.LOCATION_API_KEY;
-  console.log(key);
-  const locaUrl = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+  const locationkey = process.env.LOCATION_API_KEY;
+  // console.log(key);
+  const locaUrl = `https://eu1.locationiq.com/v1/search.php?key=${locationkey}&q=${city}&format=json`;
 
   return superagent.get(locaUrl)
     .then((geoData) => {
