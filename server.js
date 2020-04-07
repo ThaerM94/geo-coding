@@ -6,6 +6,7 @@ require('dotenv').config();
 // Application Dependencies
 const express = require('express');
 const cors = require('cors');
+const pg = require('pg');
 const superagent = require('superagent');
 
 // Application Setup
@@ -13,30 +14,69 @@ const PORT = process.env.PORT;
 const app = express();
 app.use(cors());
 
+const client = new pg.Client(process.env.DATABASE_URL);
 
 app.get('/', (request, response) => {
   response.send('Home Page!');
 });
 
+
+
+
 // Route Definitions
 
-app.get('/location', locationHandler);
+app.get('/location', checkLocation);
 app.get('/weather', weatherHandler);
 app.get('/trails', trailHandler)
 
 app.use('*', notFoundHandler);
 app.use(errorHandler);
 
+
+app.get('/cities',(request,response) =>{
+  let sql = 'SELECT * FROM locations';
+  clinet.query(sql)
+  .then(result => {
+    response.status(200).json(result)
+  })
+  .catch((err) => errorHandler(err, request, response));
+})
+
+
+
 // Route Handlers
 
-function locationHandler(Request, Response) {
-  const city = Request.query.city;
-  getlocation(city)
-    .then((newLocation) => {
-      Response.status(200).json(newLocation)
-    })
+function checkLocation (request,response){
+  const city = request.query.city;
+  let sqlCheck = `SELECT * FROM locations WHERE search_query = '${city}';`;
+  console.log(sqlCheck);
 
-    .catch((err) => errorHandler(err, request, response));
+  client.query(sqlCheck)
+    .then(result => {
+      if(result.rows.length > 0){
+        //result.row [{id,search_query,formatted_query,latitude,longitude}]
+        response.status(200).json(result.rows[0]);
+        console.log(result.rows.length);
+      } else {
+        getlocation(city)
+          .then(newLocation => {
+            console.log(newLocation);
+            //newLocation {search_query,formatted_query,latitude,longitude}
+            let ccty = newLocation.search_query;
+            let foQuery =  newLocation.formatted_query;
+            let lat = newLocation.latitude;
+            let lng = newLocation.longitude;
+            let safeValues = [ccty,foQuery,lat,lng];
+            let SQL = 'INSERT INTO locations (search_query,formatted_query,latitude,longitude) VALUES ($1,$2,$3,$4);';
+
+            client.query(SQL,safeValues)
+              .then(result2 => {
+                response.status(200).json(result2.rows[0]);
+              })
+              .catch (error => errorHandler(error));
+          })
+      }
+    })
 }
 
 function getlocation(city) {
@@ -73,7 +113,7 @@ function weatherHandler(Request, Response) {
       Response.status(200).json(arrWeather)
       console.log(arrWeather);
     })
-    .catch((err) => errorHandler(err, request, response));
+    .catch((err) => errorHandler(err, Request, Response));
 }
 
 function getWeather(city) {
@@ -153,5 +193,11 @@ function errorHandler(error, request, response) {
 }
 
 // Make sure the server is listening for requests
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+
+client.connect()
+.then(() => {
+  
+  app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
+});
+
 
