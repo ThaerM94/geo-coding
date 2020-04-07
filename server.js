@@ -52,15 +52,15 @@ function getlocation(city) {
     });
 
 }
-let lat ;
-let lon ;
+// let lat ;
+// let lon ;
 function Location(city, geoData) {
   this.search_query = city;
   this.formatted_query = geoData[0].display_name;
   this.latitude = geoData[0].lat;
   this.longitude = geoData[0].lon;
-  lat = this.latitude;
-  lon = this.longitude;
+  // lat = this.latitude;
+  // lon = this.longitude;
 }
 
 let arrWeather = [];
@@ -104,16 +104,18 @@ let arrTrail = [];
 
 
 function trailHandler(Request, Response) {
-  const city = Request.query.search_query;
-  getTrail(city)
+  // const city = Request.query.search_query;
+  let lat = Request.query.latitude;
+  let lon = Request.query.longitude;
+  getTrail(lat,lon)
     .then(arrTeail => {
       Response.status(200).json(arrTeail)
     })
 }
 
-function getTrail(city) {
+function getTrail(lat,lon) {
   const key = process.env.TRAILS_API_KEY;
-  const trailUrl = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=10&key=${key}`;
+  const trailUrl = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=500&key=${key}`;
   return superagent.get(trailUrl)
     .then(trailData => {
       arrTrail = [];
