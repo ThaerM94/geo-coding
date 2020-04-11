@@ -26,7 +26,7 @@ helping.app.get('/movies',moviesHandler);
 
 /////link with yelp file\\\\\
 const yelpHandler = require('./yelp.js');
-// helping.app.get('/yelp',yelpHandler);
+helping.app.get('/yelp',yelpHandler);
 
 
 helping.client.connect()

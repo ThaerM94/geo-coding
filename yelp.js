@@ -1,35 +1,30 @@
-// 'use strict';
+'use strict';
+const help = require('./depend.js');
+const handler = require('./handler.js');
 
-// const helping = require('./depend.js');
-
-
-// function yelpHandler(request,response){
-//     let city = request.query.search_query;
-//     const lat = request.query.latitude;
-//     const lon = request.query.longitude;
-//     getyelpData(city)
-//       .then((yelpData)=>{
-//         response.status(200).json(yelpData)
-//       })
-//   }
-//   function getyelpData(city){
-//     const key = process.env.YELP_API_KEY;
-//     let url =`${key} ${city}`;
-//     return helping.superagent.get(url)
-//       .then(yelData =>{
-//         let yelpArray = yelData.body.!!!!!!.map((value) => {
-//           return new Yelp(value);
-//         })
-//         return yelpArray;
-//       })
-//       .catch((err) => errorHandler(err));
-//   }
-//   function Yelp(value){
-//     this.name = value.name;
-//     this.image_url = value.imgurl;
-//     this.price = value.price;
-//     this.rating= value.rating;
-//     this.url = value.url;
-//   }
-
-//   module.exports=yelpHandler;
+function yelpHandler(request,response){
+  let city = request.query.search_query;
+  const key = process.env.YELP_API_KEY;
+  let url =`https://api.yelp.com/v3/businesses/search?location=${city}`;
+  help.superagent.get(url)
+    .set('Authorization', `Bearer ${key}`)
+    .then(data=> {
+      let yelpArr = data.body.businesses.map((val) => {
+        return new Yelp(val);
+      })
+      response.status(200).json(yelpArr);
+    })
+    .catch((err) => handler.errorHandler(err, request, response));
+}
+function Yelp(value){
+  this.name = value.name;
+  this.image_url = value.image_url;
+  this.price = value.price;
+  this.rating= value.rating;
+  this.url = value.url;
+}
+// ////////////////////////////////////////////////
+function errorHandler(error, request, response) {
+  response.status(500).send(error);
+}
+module.exports = yelpHandler;
