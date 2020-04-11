@@ -24,7 +24,5 @@ function Yelp(value){
   this.url = value.url;
 }
 // ////////////////////////////////////////////////
-function errorHandler(error, request, response) {
-  response.status(500).send(error);
-}
+
 module.exports = yelpHandler;
